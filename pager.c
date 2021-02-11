@@ -308,6 +308,7 @@ static inline bool assert_mailbox_writable(struct Mailbox *mailbox)
   return true;
 }
 
+#undef CHECK_ATTACH
 #define CHECK_ATTACH                                                           \
   if (OptAttachMsg)                                                            \
   {                                                                            \
