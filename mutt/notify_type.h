@@ -43,6 +43,7 @@ enum NotifyType
   NT_WINDOW,  ///< MuttWindow has changed,      #NotifyWindow,  #EventWindow
   NT_ALIAS,   ///< Alias has changed,           #NotifyAlias,   #EventAlias
   NT_BINDING, ///< Key binding has changed,     #NotifyBinding, #EventBinding
+  NT_INDEX,   ///< Index data has changed,      #NotifyIndex
 };
 
 #endif /* MUTT_LIB_NOTIFY_TYPE_H */

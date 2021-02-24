@@ -55,6 +55,7 @@
 #include "format_flags.h"
 #include "hdrline.h"
 #include "hook.h"
+#include "index_data.h"
 #include "keymap.h"
 #include "mutt_globals.h"
 #include "mutt_header.h"
@@ -565,15 +566,6 @@ static void update_index_unthreaded(struct Context *ctx, enum MxStatus check)
 }
 
 /**
- * struct CurrentEmail - Keep track of the currently selected Email
- */
-struct CurrentEmail
-{
-  struct Email *e; ///< Current email
-  size_t sequence; ///< Sequence of the current email
-};
-
-/**
  * is_current_email - Check whether an email is the currently selected Email
  * @param cur  Currently selected Email
  * @param e    Email to check
@@ -635,9 +627,11 @@ static void update_index(struct Menu *menu, struct Context *ctx, enum MxStatus c
   }
 
   if (menu->current < 0)
+  {
     menu->current = (old_current < ctx->mailbox->vcount) ?
                         old_current :
                         ci_first_message(ctx->mailbox);
+  }
 }
 
 /**
@@ -4210,9 +4204,11 @@ static struct MuttWindow *create_panel_pager(struct MuttWindow *parent, bool sta
 
 /**
  * index_pager_init - Allocate the Windows for the Index/Pager
+ * @param sub ConfigSubset
+ * @param ctx Context
  * @retval ptr Dialog containing nested Windows
  */
-struct MuttWindow *index_pager_init(void)
+struct MuttWindow *index_pager_init(struct ConfigSubset *sub, struct Context *ctx)
 {
   struct MuttWindow *dlg =
       mutt_window_new(WT_DLG_INDEX, MUTT_WIN_ORIENT_HORIZONTAL, MUTT_WIN_SIZE_MAXIMISE,
@@ -4222,6 +4218,15 @@ struct MuttWindow *index_pager_init(void)
   const bool c_status_on_top = cs_subset_bool(NeoMutt->sub, "status_on_top");
   mutt_window_add_child(dlg, create_panel_index(dlg, c_status_on_top));
   mutt_window_add_child(dlg, create_panel_pager(dlg, c_status_on_top));
+
+  struct IndexData *idata = index_data_new();
+  idata->sub = sub;
+  idata->ctx = ctx;
+  idata->mailbox = ctx_mailbox(ctx);
+  idata->account = idata->mailbox ? idata->mailbox->account : NULL;
+
+  dlg->wdata = idata;
+  dlg->wdata_free = index_data_free;
 
   return dlg;
 }

@@ -1232,7 +1232,7 @@ int main(int argc, char *argv[], char *envp[])
     }
     if (Contex2 || !explicit_folder)
     {
-      struct MuttWindow *dlg = index_pager_init();
+      struct MuttWindow *dlg = index_pager_init(NeoMutt->sub, Contex2);
       dialog_push(dlg);
 
       struct EventMailbox em = { Contex2 ? Contex2->mailbox : NULL };

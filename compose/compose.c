@@ -2148,7 +2148,7 @@ int mutt_compose_menu(struct Email *e, struct Buffer *fcc, struct Email *e_cur,
         Contex2 = ctx;
         OptAttachMsg = true;
         mutt_message(_("Tag the messages you want to attach"));
-        struct MuttWindow *dlgindex = index_pager_init();
+        struct MuttWindow *dlgindex = index_pager_init(NeoMutt->sub, Contex2);
         dialog_push(dlgindex);
         mutt_index_menu(dlgindex);
         dialog_pop();
