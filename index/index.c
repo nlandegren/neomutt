@@ -55,6 +55,7 @@
 #include "format_flags.h"
 #include "hdrline.h"
 #include "hook.h"
+#include "ibar.h"
 #include "index_data.h"
 #include "keymap.h"
 #include "mutt_globals.h"
@@ -4146,17 +4147,17 @@ int mutt_reply_observer(struct NotifyCallback *nc)
 }
 
 /**
- * create_panel_index - Create the Windows for the Index panel
+ * add_panel_index - Create the Windows for the Index panel
  * @param parent        Parent Window
  * @param status_on_top true, if the Index bar should be on top
- * @retval ptr Nested Windows
  */
-static struct MuttWindow *create_panel_index(struct MuttWindow *parent, bool status_on_top)
+static void add_panel_index(struct MuttWindow *parent, bool status_on_top)
 {
   struct MuttWindow *panel_index =
       mutt_window_new(WT_CONTAINER, MUTT_WIN_ORIENT_VERTICAL, MUTT_WIN_SIZE_MAXIMISE,
                       MUTT_WIN_SIZE_UNLIMITED, MUTT_WIN_SIZE_UNLIMITED);
   parent->focus = panel_index;
+  mutt_window_add_child(parent, panel_index);
 
   struct MuttWindow *win_index =
       mutt_window_new(WT_INDEX, MUTT_WIN_ORIENT_VERTICAL, MUTT_WIN_SIZE_MAXIMISE,
@@ -4167,32 +4168,34 @@ static struct MuttWindow *create_panel_index(struct MuttWindow *parent, bool sta
       mutt_window_new(WT_INDEX_BAR, MUTT_WIN_ORIENT_VERTICAL,
                       MUTT_WIN_SIZE_FIXED, MUTT_WIN_SIZE_UNLIMITED, 1);
 
+  struct MuttWindow *win_ibar2 = ibar_create(panel_index);
+
   if (status_on_top)
   {
     mutt_window_add_child(panel_index, win_ibar);
     mutt_window_add_child(panel_index, win_index);
+    mutt_window_add_child(panel_index, win_ibar2);
   }
   else
   {
     mutt_window_add_child(panel_index, win_index);
     mutt_window_add_child(panel_index, win_ibar);
+    mutt_window_add_child(panel_index, win_ibar2);
   }
-
-  return panel_index;
 }
 
 /**
- * create_panel_pager - Create the Windows for the Pager panel
+ * add_panel_pager - Create the Windows for the Pager panel
  * @param parent        Parent Window
  * @param status_on_top true, if the Pager bar should be on top
- * @retval ptr Nested Windows
  */
-static struct MuttWindow *create_panel_pager(struct MuttWindow *parent, bool status_on_top)
+static void add_panel_pager(struct MuttWindow *parent, bool status_on_top)
 {
   struct MuttWindow *panel_pager =
       mutt_window_new(WT_CONTAINER, MUTT_WIN_ORIENT_VERTICAL, MUTT_WIN_SIZE_MAXIMISE,
                       MUTT_WIN_SIZE_UNLIMITED, MUTT_WIN_SIZE_UNLIMITED);
   panel_pager->state.visible = false; // The Pager and Pager Bar are initially hidden
+  mutt_window_add_child(parent, panel_pager);
 
   struct MuttWindow *win_pager =
       mutt_window_new(WT_PAGER, MUTT_WIN_ORIENT_VERTICAL, MUTT_WIN_SIZE_MAXIMISE,
@@ -4213,8 +4216,6 @@ static struct MuttWindow *create_panel_pager(struct MuttWindow *parent, bool sta
     mutt_window_add_child(panel_pager, win_pager);
     mutt_window_add_child(panel_pager, win_pbar);
   }
-
-  return panel_pager;
 }
 
 /**
@@ -4231,8 +4232,8 @@ struct MuttWindow *index_pager_init(struct ConfigSubset *sub, struct Context *ct
   notify_observer_add(NeoMutt->notify, NT_CONFIG, mutt_dlgindex_observer, dlg);
 
   const bool c_status_on_top = cs_subset_bool(NeoMutt->sub, "status_on_top");
-  mutt_window_add_child(dlg, create_panel_index(dlg, c_status_on_top));
-  mutt_window_add_child(dlg, create_panel_pager(dlg, c_status_on_top));
+  add_panel_index(dlg, c_status_on_top);
+  add_panel_pager(dlg, c_status_on_top);
 
   struct IndexData *idata = index_data_new();
   idata->sub = sub;
